@@ -1,9 +1,9 @@
-This is the README file for A0000000X's submission
-Email(s): e0000000@u.nus.edu
+This is the README file for A0267818M-A0267993E's submission
+Email(s): e1100338@u.nus.edu, e1100705@u.nus.edu
 
 == Python Version ==
 
-I'm (We're) using Python Version <3.8.10 or replace version number> for
+I'm (We're) using Python Version 3.9.13 for
 this assignment.
 
 == General Notes about this assignment ==
@@ -22,7 +22,7 @@ and formatted correctly.
 
 Please put a "x" (without the double quotes) into the bracket of the appropriate statement.
 
-[ ] I/We, A0000000X, certify that I/we have followed the CS 3245 Information
+[x] I/We, A0000000X, certify that I/we have followed the CS 3245 Information
 Retrieval class guidelines for homework assignments.  In particular, I/we
 expressly vow that I/we have followed the Facebook rule in discussing
 with others in doing the assignment and did not take notes (digital or
