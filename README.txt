@@ -22,13 +22,13 @@ and formatted correctly.
 
 Please put a "x" (without the double quotes) into the bracket of the appropriate statement.
 
-[x] I/We, A0000000X, certify that I/we have followed the CS 3245 Information
+[x] I/We, A0267818M-A0267993E, certify that I/we have followed the CS 3245 Information
 Retrieval class guidelines for homework assignments.  In particular, I/we
 expressly vow that I/we have followed the Facebook rule in discussing
 with others in doing the assignment and did not take notes (digital or
 printed) from the discussions.  
 
-[ ] I/We, A0000000X, did not follow the class rules regarding homework
+[ ] I/We, A0267818M-A0267993E, did not follow the class rules regarding homework
 assignment, because of the following reason:
 
 <Please fill in>
