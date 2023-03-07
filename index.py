@@ -1,8 +1,10 @@
 #!/usr/bin/python3
-import re
 import nltk
 import sys
 import getopt
+import os
+import string
+from nltk.stem.porter import *
 
 def usage():
     print("usage: " + sys.argv[0] + " -i directory-of-documents -d dictionary-file -p postings-file")
@@ -13,8 +15,41 @@ def build_index(in_dir, out_dict, out_postings):
     then output the dictionary file and postings file
     """
     print('indexing...')
-    # This is an empty method
-    # Pls implement your code in below
+    files = sorted(os.listdir(in_dir), key=int) # grab all filenames in in_directory in sorted order
+    term_and_postings_dictionary = {}
+    term_docID_pairs_lst = []
+
+    for filename in files[:]: # grab all filenames in in_directory
+        with open(os.path.join(in_dir, filename), 'r') as f: # open each file
+            content = (f.read()).lower() # apply case-folding
+            content = content.translate(str.maketrans('', '', string.punctuation)) # remove punctuation
+            words = nltk.tokenize.word_tokenize(content) # tokenize into words (change this so that we tokenize into sentences first and then words)
+
+            stemmer = PorterStemmer()
+            words = [stemmer.stem(word) for word in words] # apply stemming
+
+            for word in words:
+                term_docID_pairs_lst.append((word, int(filename)))
+
+    term_docID_pairs_lst = list(dict.fromkeys(term_docID_pairs_lst)) # remove duplicates from list of term-docID pairs
+    sorted_lst = sorted(term_docID_pairs_lst)
+
+    # Transfer items from the term-docID pairs list to a python dictionary with terms and postings
+    for (term, docID) in sorted_lst:
+        if term not in term_and_postings_dictionary:
+            term_and_postings_dictionary[term] = [docID]
+        else:
+            term_and_postings_dictionary[term].append(docID)
+
+    # Populate file parameters for the dictionary and postings with the term_and_postings_dictionary
+    sorted_dict = dict(sorted(term_and_postings_dictionary.items()))
+    with open(out_dict, 'a') as f1:
+        with open(out_postings, 'a') as f2:
+            dictionary = {}
+            for term, postings in sorted_dict.items():
+                dictionary.update({term: (f2.tell(), len(postings))})
+                f2.write(str(postings))
+            f1.write(str(dictionary))
 
 input_directory = output_file_dictionary = output_file_postings = None
 
