@@ -18,6 +18,7 @@ def build_index(in_dir, out_dict, out_postings):
     print('indexing...')
     files = sorted(os.listdir(in_dir), key=int) # grab all filenames in in_directory in sorted order
     term_and_postings_dictionary = {}
+    document_lengths_file = open('document_lengths.txt', 'a')
     term_docID_pairs_lst = []
 
     for filename in files[:]: # grab all filenames in in_directory
@@ -30,8 +31,10 @@ def build_index(in_dir, out_dict, out_postings):
             words = [stemmer.stem(word) for word in words] # apply stemming
 
             term_frequency = {}
+            word_count = 0
 
             for word in words:
+                word_count += 1
                 if word not in term_frequency:
                     term_frequency[word] = 1
                 else:
@@ -39,6 +42,8 @@ def build_index(in_dir, out_dict, out_postings):
 
             for word in term_frequency:
                 term_docID_pairs_lst.append((word, int(filename), term_frequency[word]))
+            
+            document_lengths_file.write(str((int(filename), word_count)) + '\n')
 
     term_docID_pairs_lst = list(dict.fromkeys(term_docID_pairs_lst)) # remove duplicates from list of term-docID pairs
     sorted_lst = sorted(term_docID_pairs_lst)
