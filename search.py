@@ -16,7 +16,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     perform searching on the given queries file and output the results to a file
     """
     print('running search on the queries...')
-    f2 = open(results_file,"w")
+    f2 = open(results_file, "w")
     with open("alldocIDs.txt") as f:
         all_docIDs = f.readlines() # get list of all docIDs
     
@@ -35,7 +35,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
             docIDs = []
 
             query_score = query_weight(line, len(all_docIDs), dictionary)
-            
+            print(query_score)
             # for docID in all_docIDs:
             #     doc_scores[docID] = doc_weight(line, docID, dict_file, postings_file)
 
@@ -93,7 +93,7 @@ def query_weight(query, collection_size, dictionary):
     # returns weighting score for queries
     weight = 0
 
-    for term in query:
+    for term in query.split():
         tf = 1 + math.log(query.count(term), 10)
         if term in dictionary:
             idf = math.log(collection_size/dictionary[term][1], 10)
