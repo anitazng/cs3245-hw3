@@ -5,6 +5,7 @@ import getopt
 import os
 import string
 from nltk.stem.porter import *
+import math
 
 def usage():
     print("usage: " + sys.argv[0] + " -i directory-of-documents -d dictionary-file -p postings-file")
@@ -23,23 +24,31 @@ def build_index(in_dir, out_dict, out_postings):
         with open(os.path.join(in_dir, filename), 'r') as f: # open each file
             content = (f.read()).lower() # apply case-folding
             content = content.translate(str.maketrans('', '', string.punctuation)) # remove punctuation
-            words = nltk.tokenize.word_tokenize(content) # tokenize into words (change this so that we tokenize into sentences first and then words)
+            words = nltk.tokenize.word_tokenize(content) # tokenize into words
 
             stemmer = PorterStemmer()
             words = [stemmer.stem(word) for word in words] # apply stemming
 
+            term_frequency = {}
+
             for word in words:
-                term_docID_pairs_lst.append((word, int(filename)))
+                if word not in term_frequency:
+                    term_frequency[word] = 1
+                else:
+                    term_frequency[word] += 1
+
+            for word in term_frequency:
+                term_docID_pairs_lst.append((word, int(filename), term_frequency[word]))
 
     term_docID_pairs_lst = list(dict.fromkeys(term_docID_pairs_lst)) # remove duplicates from list of term-docID pairs
     sorted_lst = sorted(term_docID_pairs_lst)
 
     # Transfer items from the term-docID pairs list to a python dictionary with terms and postings
-    for (term, docID) in sorted_lst:
+    for (term, docID, term_freq) in sorted_lst:
         if term not in term_and_postings_dictionary:
-            term_and_postings_dictionary[term] = [docID]
+            term_and_postings_dictionary[term] = [(docID, term_freq)]
         else:
-            term_and_postings_dictionary[term].append(docID)
+            term_and_postings_dictionary[term].append((docID, term_freq))
 
     # Populate file parameters for the dictionary and postings with the term_and_postings_dictionary
     sorted_dict = dict(sorted(term_and_postings_dictionary.items()))

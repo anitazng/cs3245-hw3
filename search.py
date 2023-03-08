@@ -3,6 +3,9 @@ import re
 import nltk
 import sys
 import getopt
+from nltk.stem.porter import *
+import ast
+import math
 
 def usage():
     print("usage: " + sys.argv[0] + " -d dictionary-file -p postings-file -q file-of-queries -o output-file-of-results")
@@ -38,7 +41,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
             
     f2.close()
     
-def get_postings_list(term, dict_file, postings_file,):
+def get_postings_list(term, dict_file, postings_file):
     # returns list of docIDs
     postings = ""
     num = 0
@@ -72,131 +75,13 @@ def get_postings_list(term, dict_file, postings_file,):
 
     return postings_list
 
-def create_postfix_exp(query):
-    # use shunting-yard algorithm to turn in-fix query into a post-fix query
-    operators = ["AND", "NOT", "OR"]
-    op_precedence = {"OR": 0, "AND": 1, "NOT": 2} # order of precedence is NOT, then AND, then OR
-    buffer = []
-    op_stack = []
-    tokens = re.findall("AND|OR|NOT|\(|\)|\w+", query) # tokenize the query, i.e. get all words and operators
-    
-    for token in tokens:
-        if token == "OR" or token == "AND" or token == "NOT":
-            while len(op_stack) != 0 and op_stack[-1] in operators and op_precedence[op_stack[-1]] > op_precedence[token]:  
-                buffer.append(op_stack.pop())
-            op_stack.append(token)
-        elif token == "(":
-            op_stack.append(token)
-        elif token == ")":
-            while op_stack[-1] != "(":
-                buffer.append(op_stack.pop())
-            op_stack.pop() # pop ( character
-        else:
-            buffer.append(token)
-        
-    while len(op_stack) != 0:
-        buffer.append(op_stack.pop())
-    
-    print(buffer)
-    return buffer
+def query_weight(query):
+    # returns weighting score for queries
+    pass
 
-def evaluate_exp(query, dict_file, postings_file, full_postings_list):
-    # given a post-fix query as a list, use a stack to evaluate the query
-    # returns string containing the resulting docIDs
-    operators = ["AND", "NOT", "OR"]
-    stack = []
-
-    for token in query:
-        if token not in operators:
-            stack.append(get_postings_list(token, dict_file, postings_file))
-        elif token == "NOT":
-            stack.append(logical_not(stack.pop(), full_postings_list))
-        elif token == "AND":
-            postings_one = stack.pop()
-            postings_two = stack.pop()
-            stack.append(logical_and(postings_one, postings_two))
-        else:
-            postings_one = stack.pop()
-            postings_two = stack.pop()
-            stack.append(logical_or(postings_one, postings_two))
-
-    return stack[0]
-
-def logical_and(postings_one, postings_two):
-    # returns the merged postings lists using the and operator
-
-    result = []
-    p1 = 0
-    p2 = 0
-
-    while p1 != len(postings_one) and p2 != len(postings_two):
-        if postings_one[p1][0] == postings_two[p2][0]:
-            result.append((postings_one[p1][0], None))
-            p1 += 1
-            p2 += 1
-        elif postings_one[p1][0] < postings_two[p2][0]:
-            if postings_one[p1][1] != None and postings_one[postings_one[p1][1]][0] <= postings_two[p2][0]:
-                while postings_one[p1][1] != None and postings_one[postings_one[p1][1]][0] <= postings_two[p2][0]:
-                    p1 = postings_one[p1][1]
-            else:
-                p1 += 1
-        elif postings_two[p2][0] < postings_one[p1][0]:
-            if postings_two[p2][1] != None and postings_two[postings_two[p2][1]][0] <= postings_one[p1][0]:
-                while postings_two[p2][1] != None and postings_two[postings_two[p2][1]][0] <= postings_one[p1][0]:
-                    p2 = postings_two[p2][1]
-            else:
-                p2 += 1
-
-    return result
-
-def logical_or(postings_one, postings_two):
-    # returns the merged postings lists using the or operator
-
-    result = []
-    p1 = 0
-    p2 = 0
-
-    while p1 != len(postings_one) and p2 != len(postings_two):
-        if postings_one[p1][0] < postings_two[p2][0]:
-            result.append((postings_one[p1][0], None))
-            p1 += 1
-        elif postings_one[p1][0] == postings_two[p2][0]:
-            result.append((postings_one[p1][0], None))
-            p1 += 1
-            p2 += 1
-        else:
-            result.append((postings_two[p2][0], None))
-            p2 += 1
-
-    if p1 != len(postings_one):
-        for posting in postings_one[p1:]:
-            result.append((posting[0], None))
-    
-    if p2 != len(postings_two):
-        for posting in postings_two[p2:]:
-            result.append((posting[0], None))
-
-    return result
-
-def logical_not(postings_list, full_postings_list):
-    # returns the merged postings lists using the not operator
-
-    result = []
-    p1 = 0
-    p2 = 0
-
-    while p1 != len(postings_list) and p2 != len(full_postings_list):
-        if postings_list[p1][0] != int(full_postings_list[p2]):
-            result.append((int(full_postings_list[p2]), None))
-            p2 += 1
-        else:
-            p1 += 1
-            p2 += 1
-    
-    for docID in full_postings_list[p2:]:
-        result.append((int(docID), None))
-
-    return result
+def doc_weight(docID):
+    # returns weighting score for document
+    pass
 
 dictionary_file = postings_file = file_of_queries = output_file_of_results = None
 
