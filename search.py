@@ -10,8 +10,6 @@ import math
 def usage():
     print("usage: " + sys.argv[0] + " -d dictionary-file -p postings-file -q file-of-queries -o output-file-of-results")
 
-# TODO: Revise the processing for search.py based on new formats of dictionary.txt and postings.txt
-
 def run_search(dict_file, postings_file, queries_file, results_file):
     """
     using the given dictionary file and postings file,
@@ -20,19 +18,35 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     print('running search on the queries...')
     f2 = open(results_file,"w")
     with open("alldocIDs.txt") as f:
-        full_postings_list = f.readlines() # get list of all docIDs for processing "NOT" queries
+        all_docIDs = f.readlines() # get list of all docIDs
+    
+    dictionary = {}
+    
+    with open(dict_file) as f:
+        dictionary = f.read() # load dictionary into memory
+        dictionary = ast.literal_eval(dictionary) # parse the file into a python dictionary
 
     # open queries file and process each query
     with open(queries_file) as f1:
         lines = f1.readlines()
 
         for line in lines:
-            postfix_exp = create_postfix_exp(line)
-            docIDs = evaluate_exp(postfix_exp, dict_file, postings_file, full_postings_list)
+            doc_scores = {}
+            docIDs = []
+
+            query_score = query_weight(line, len(all_docIDs), dictionary)
+            
+            # for docID in all_docIDs:
+            #     doc_scores[docID] = doc_weight(line, docID, dict_file, postings_file)
+
+            # for docID, doc_score in doc_scores.items():
+            #     docIDs.append((docID, ))
+
+            # get list of docIDs sorted by cosine similarity
             line = ""
 
-            for docID in docIDs:
-                line += str(docID[0]) + " "
+            # for docID in docIDs:
+            #     line += str(docID[0]) + " "
             
             line.strip()
             line += "\n"
@@ -75,12 +89,46 @@ def get_postings_list(term, dict_file, postings_file):
 
     return postings_list
 
-def query_weight(query):
+def query_weight(query, collection_size, dictionary):
     # returns weighting score for queries
-    pass
+    weight = 0
 
-def doc_weight(docID):
+    for term in query:
+        tf = 1 + math.log(query.count(term), 10)
+        if term in dictionary:
+            idf = math.log(collection_size/dictionary[term][1], 10)
+        else:
+            idf = 0
+
+        weight += tf * idf
+    
+    # perform cosine normalization
+    # print(weight)
+    return weight
+
+def doc_weight(query, docID, dictionary, postings):
     # returns weighting score for document
+    weight = 0
+    term_frequency = 0
+
+    for term in query:
+        postings_list = get_postings_list(term, dictionary, postings)
+        for posting in postings_list:
+            if posting[0] == docID:
+                term_frequency = posting[1]
+        
+        if term_frequency > 0:
+            tf = 1 + math.log(term_frequency, 10)
+        else:
+            tf = 0
+
+        weight += tf
+    
+    # perform cosine normalization 
+    return weight
+
+def cosine_similarity(query, document):
+    # returns the cosine similarity between the document and query
     pass
 
 dictionary_file = postings_file = file_of_queries = output_file_of_results = None
