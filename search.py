@@ -19,34 +19,46 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     f2 = open(results_file, "w")
     with open("alldocIDs.txt") as f:
         all_docIDs = f.readlines() # get list of all docIDs
-    
-    dictionary = {}
-    
+
     with open(dict_file) as f:
         dictionary = f.read() # load dictionary into memory
         dictionary = ast.literal_eval(dictionary) # parse the file into a python dictionary
+    
+    with open("document_lengths.txt") as f:
+        doc_lengths = f.read() # load document lengths into memory
+        doc_lengths = ast.literal_eval(doc_lengths) # parse the file into a python dictionary
 
     # open queries file and process each query
     with open(queries_file) as f1:
         lines = f1.readlines()
 
-        for line in lines:
-            doc_scores = {}
-            docIDs = []
+        for query in lines:
+            scores = [[0, 0]] * (int(all_docIDs[-1]) + 1) # initialize all similarity scores to 0
 
-            query_score = query_weight(line, len(all_docIDs), dictionary)
-            print(query_score)
-            # for docID in all_docIDs:
-            #     doc_scores[docID] = doc_weight(line, docID, dict_file, postings_file)
+            # get list of docIDs sorted by cosine similarity and write the top 10 to the output file
+            for term in query:    
+                term_vector = query_term_vector(query, term, len(doc_lengths), dictionary)
+            
+                postings_list = get_postings_list(term, dict_file, postings_file)
 
-            # for docID, doc_score in doc_scores.items():
-            #     docIDs.append((docID, ))
+                for pair in postings_list:
+                    scores[pair[0]][0] = pair[0]
+                    scores[pair[0]][1] += term_vector * doc_term_vector(pair)
 
-            # get list of docIDs sorted by cosine similarity
+            for docID in all_docIDs:
+                scores[int(docID.strip())] = [int(docID.strip()), (scores[int(docID.strip())][1] / doc_lengths[docID.strip()])]
+            
+            print(scores[:15])
+            scores = sorted(scores, reverse=True, key=lambda x: x[1])
+            print(scores[:15])
+
             line = ""
 
-            # for docID in docIDs:
-            #     line += str(docID[0]) + " "
+            for i in range(10):
+                if scores[i][1] != 0:
+                    line += str(scores[i][0]) + " "
+                else:
+                    break
             
             line.strip()
             line += "\n"
@@ -89,46 +101,27 @@ def get_postings_list(term, dict_file, postings_file):
 
     return postings_list
 
-def query_weight(query, collection_size, dictionary):
+def query_term_vector(query, term, collection_size, dictionary):
     # returns weighting score for queries
-    weight = 0
 
-    for term in query.split():
-        tf = 1 + math.log(query.count(term), 10)
-        if term in dictionary:
-            idf = math.log(collection_size/dictionary[term][1], 10)
-        else:
-            idf = 0
+    tf = 1 + math.log(query.count(term), 10)
 
-        weight += tf * idf
+    if term in dictionary:
+        idf = math.log(collection_size/dictionary[term][1], 10)
+    else:
+        idf = 0
     
-    # perform cosine normalization
-    # print(weight)
-    return weight
+    return tf * idf
 
-def doc_weight(query, docID, dictionary, postings):
+def doc_term_vector(docID_tf_pair):
     # returns weighting score for document
-    weight = 0
-    term_frequency = 0
-
-    for term in query:
-        postings_list = get_postings_list(term, dictionary, postings)
-        for posting in postings_list:
-            if posting[0] == docID:
-                term_frequency = posting[1]
-        
-        if term_frequency > 0:
-            tf = 1 + math.log(term_frequency, 10)
-        else:
-            tf = 0
-
-        weight += tf
+    term_frequency = docID_tf_pair[1]
     
-    # perform cosine normalization 
-    return weight
+    return 1 + math.log(term_frequency, 10)
 
-def cosine_similarity(query, document):
-    # returns the cosine similarity between the document and query
+def cosine_similarity(query, dictionary, postings, doc_lengths):
+    # returns list of docIDs sorted by cosine similarity to query
+    # calls the query_vector and doc_vector functions
     pass
 
 dictionary_file = postings_file = file_of_queries = output_file_of_results = None
