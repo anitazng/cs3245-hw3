@@ -6,6 +6,7 @@ import getopt
 from nltk.stem.porter import *
 import ast
 import math
+import operator
 
 def usage():
     print("usage: " + sys.argv[0] + " -d dictionary-file -p postings-file -q file-of-queries -o output-file-of-results")
@@ -33,32 +34,27 @@ def run_search(dict_file, postings_file, queries_file, results_file):
         lines = f1.readlines()
 
         for query in lines:
-            scores = [[0, 0]] * (int(all_docIDs[-1]) + 1) # initialize all similarity scores to 0
+            scores = {}
 
             # get list of docIDs sorted by cosine similarity and write the top 10 to the output file
-            for term in query:    
+            for term in query:
                 term_vector = query_term_vector(query, term, len(doc_lengths), dictionary)
-            
                 postings_list = get_postings_list(term, dict_file, postings_file)
 
                 for pair in postings_list:
-                    scores[pair[0]][0] = pair[0]
-                    scores[pair[0]][1] += term_vector * doc_term_vector(pair)
+                    scores.update({pair[0]: term_vector * doc_term_vector(pair)})
 
             for docID in all_docIDs:
-                scores[int(docID.strip())] = [int(docID.strip()), (scores[int(docID.strip())][1] / doc_lengths[docID.strip()])]
+                if int(docID.strip()) in scores.keys():
+                    # Fix document lengths calculation
+                    scores[int(docID.strip())] = scores[int(docID.strip())] / doc_lengths[docID.strip()]
             
-            print(scores[:15])
-            scores = sorted(scores, reverse=True, key=lambda x: x[1])
-            print(scores[:15])
-
+            scores = list(sorted(scores.items(), key=operator.itemgetter(1),reverse=True))
+            print(scores[:10])
             line = ""
 
             for i in range(10):
-                if scores[i][1] != 0:
-                    line += str(scores[i][0]) + " "
-                else:
-                    break
+                line += str(scores[i][0]) + " "
             
             line.strip()
             line += "\n"
