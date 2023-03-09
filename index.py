@@ -20,6 +20,7 @@ def build_index(in_dir, out_dict, out_postings):
     term_and_postings_dictionary = {}
     document_lengths_file = open('document_lengths.txt', 'a')
     term_docID_pairs_lst = []
+    document_lengths_dict = {}
 
     for filename in files[:]: # grab all filenames in in_directory
         with open(os.path.join(in_dir, filename), 'r') as f: # open each file
@@ -43,8 +44,9 @@ def build_index(in_dir, out_dict, out_postings):
             for word in term_frequency:
                 term_docID_pairs_lst.append((word, int(filename), term_frequency[word]))
             
-            document_lengths_file.write(str((int(filename), word_count)) + '\n')
+            document_lengths_dict.update({filename: word_count})
 
+    document_lengths_file.write(str(document_lengths_dict))
     term_docID_pairs_lst = list(dict.fromkeys(term_docID_pairs_lst)) # remove duplicates from list of term-docID pairs
     sorted_lst = sorted(term_docID_pairs_lst)
 
