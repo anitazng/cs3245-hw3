@@ -35,10 +35,7 @@ def build_index(in_dir, out_dict, out_postings):
             doc_length = 0
 
             for word in words:
-                if word not in term_frequency:
-                    term_frequency[word] = 1
-                else:
-                    term_frequency[word] += 1
+                term_frequency[word] = term_frequency.get(word, 0) + 1
 
             for word, freq in term_frequency.items():
                 doc_length += (1 + math.log(freq, 10))**2

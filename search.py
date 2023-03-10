@@ -7,6 +7,7 @@ from nltk.stem.porter import *
 import ast
 import math
 import operator
+import string
 
 def usage():
     print("usage: " + sys.argv[0] + " -d dictionary-file -p postings-file -q file-of-queries -o output-file-of-results")
@@ -35,9 +36,10 @@ def run_search(dict_file, postings_file, queries_file, results_file):
 
         for query in lines:
             scores = {}
+            processed_query = query.translate(str.maketrans('', '', string.punctuation)) # remove punctuation
 
             # get list of docIDs sorted by cosine similarity and write the top 10 to the output file
-            for term in query.split():
+            for term in processed_query.split():
                 term_vector = query_term_vector(query, term, len(doc_lengths), dictionary)
                 postings_list = get_postings_list(term, dict_file, postings_file)
 
@@ -47,6 +49,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
             # perform normalization
             for docID in all_docIDs:
                 if int(docID.strip()) in scores:
+                    # print(("raw score: " + str(scores[int(docID.strip())]), "doc_length: " + str(doc_lengths[docID.strip()]), "weighted score: " + str(scores[int(docID.strip())] / doc_lengths[docID.strip()])))
                     scores[int(docID.strip())] = scores[int(docID.strip())] / doc_lengths[docID.strip()]
             
             scores = list(sorted(scores.items(), key=lambda x: (x[1], -x[0]) , reverse=True))
@@ -101,8 +104,13 @@ def get_postings_list(term, dict_file, postings_file):
     return postings_list
 
 def query_term_vector(query, term, collection_size, dictionary):
+    stemmer = PorterStemmer()
+    processed_query = query.translate(str.maketrans('', '', string.punctuation))
+
     # returns weighted vector entry for term
-    tf = 1 + math.log(query.count(term), 10)
+    tf = 1 + math.log(processed_query.count(term), 10)
+
+    term = stemmer.stem(term.lower())
 
     if term in dictionary:
         idf = math.log(collection_size / dictionary[term][1], 10)
