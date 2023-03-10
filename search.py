@@ -37,7 +37,7 @@ def run_search(dict_file, postings_file, queries_file, results_file):
             scores = {}
 
             # get list of docIDs sorted by cosine similarity and write the top 10 to the output file
-            for term in query:
+            for term in query.split():
                 term_vector = query_term_vector(query, term, len(doc_lengths), dictionary)
                 postings_list = get_postings_list(term, dict_file, postings_file)
 
@@ -47,15 +47,17 @@ def run_search(dict_file, postings_file, queries_file, results_file):
             # perform normalization
             for docID in all_docIDs:
                 if int(docID.strip()) in scores:
-                    # Fix document lengths calculation
                     scores[int(docID.strip())] = scores[int(docID.strip())] / doc_lengths[docID.strip()]
             
-            scores = list(sorted(scores.items(), key=operator.itemgetter(1),reverse=True))
-            print(scores[:10])
+            scores = list(sorted(scores.items(), key=lambda x: (x[1], -x[0]) , reverse=True))
+            print(scores[:50])
             line = ""
 
             for i in range(10):
-                line += str(scores[i][0]) + " "
+                if scores[i][0] != 0:
+                    line += str(scores[i][0]) + " "
+                else:
+                    break
             
             line.strip()
             line += "\n"

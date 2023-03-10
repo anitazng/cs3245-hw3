@@ -32,19 +32,19 @@ def build_index(in_dir, out_dict, out_postings):
             words = [stemmer.stem(word) for word in words] # apply stemming
 
             term_frequency = {}
-            word_count = 0
+            doc_length = 0
 
             for word in words:
-                word_count += 1
                 if word not in term_frequency:
                     term_frequency[word] = 1
                 else:
                     term_frequency[word] += 1
 
-            for word in term_frequency:
-                term_docID_pairs_lst.append((word, int(filename), term_frequency[word]))
+            for word, freq in term_frequency.items():
+                doc_length += (1 + math.log(freq, 10))**2
+                term_docID_pairs_lst.append((word, int(filename), freq))
             
-            document_lengths_dict.update({filename: word_count})
+            document_lengths_dict.update({filename: math.sqrt(doc_length)})
 
     document_lengths_file.write(str(document_lengths_dict))
     term_docID_pairs_lst = list(dict.fromkeys(term_docID_pairs_lst)) # remove duplicates from list of term-docID pairs
