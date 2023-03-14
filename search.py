@@ -19,8 +19,6 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     """
     print('running search on the queries...')
     f2 = open(results_file, "w")
-    with open("alldocIDs.txt") as f:
-        all_docIDs = f.readlines() # get list of all docIDs
 
     with open(dict_file) as f:
         dictionary = f.read() # load dictionary into memory
@@ -50,20 +48,20 @@ def run_search(dict_file, postings_file, queries_file, results_file):
             for docID, score in scores.items():
                 scores[docID] = score / doc_lengths[str(docID)]
             
-            scores = list(sorted(scores.items(), key=lambda x: (x[1], -x[0]) , reverse=True))
+            scores = list(sorted(scores.items(), key=lambda x: (x[1], -x[0]) , reverse=True)) # sort by decreasing score, increasing docID
             line = ""
 
-            if len(scores) < 10:
+            if len(scores) < 10: # write every docID to output file if less than 10 valid results
                 for pair in scores:
                     line += str(pair[0]) + " "
             else:
-                for i in range(10):
+                for i in range(10): # write top 10 results to output file if more than 10 valid results
                     line += str(scores[i][0]) + " "
             
             line.strip()
             line += "\n"
 
-            f2.write(line) # write the result of each query into the results-file
+            f2.write(line)
             
     f2.close()
     
@@ -102,14 +100,16 @@ def get_postings_list(term, dict_file, postings_file):
     return postings_list
 
 def query_term_vector(query, term, collection_size, dictionary):
+    # returns weighted vector entry for term
+
     stemmer = PorterStemmer()
     processed_query = query.translate(str.maketrans('', '', string.punctuation))
 
-    # returns weighted vector entry for term
-    tf = 1 + math.log(processed_query.count(term), 10)
+    tf = 1 + math.log(processed_query.count(term), 10) # perform tf
 
     term = stemmer.stem(term.lower())
 
+    # perform idf
     if term in dictionary:
         idf = math.log(collection_size / dictionary[term][1], 10)
     else:
