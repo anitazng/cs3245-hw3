@@ -43,24 +43,22 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                 term_vector = query_term_vector(query, term, len(doc_lengths), dictionary)
                 postings_list = get_postings_list(term, dict_file, postings_file)
 
-                for pair in postings_list:
-                    scores.update({pair[0]: scores.get(pair[0], 0) + term_vector * doc_term_vector(pair)})
+                for pair in postings_list: # update only scores of docIDs in postings list, other doc scores will be unaffected
+                    scores.update({pair[0]: scores.get(pair[0], 0) + (term_vector * doc_term_vector(pair))}) 
 
             # perform normalization
-            for docID in all_docIDs:
-                if int(docID.strip()) in scores:
-                    # print(("raw score: " + str(scores[int(docID.strip())]), "doc_length: " + str(doc_lengths[docID.strip()]), "weighted score: " + str(scores[int(docID.strip())] / doc_lengths[docID.strip()])))
-                    scores[int(docID.strip())] = scores[int(docID.strip())] / doc_lengths[docID.strip()]
+            for docID, score in scores.items():
+                scores[docID] = score / doc_lengths[str(docID)]
             
             scores = list(sorted(scores.items(), key=lambda x: (x[1], -x[0]) , reverse=True))
-            print(scores[:50])
             line = ""
 
-            for i in range(10):
-                if scores[i][0] != 0:
+            if len(scores) < 10:
+                for pair in scores:
+                    line += str(pair[0]) + " "
+            else:
+                for i in range(10):
                     line += str(scores[i][0]) + " "
-                else:
-                    break
             
             line.strip()
             line += "\n"
