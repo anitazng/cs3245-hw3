@@ -8,15 +8,24 @@ this assignment.
 
 == General Notes about this assignment ==
 
-Give an overview of your program, describe the important algorithms/steps 
-in your program, and discuss your experiments in general.  A few paragraphs 
-are usually sufficient.
+The search.py file contains firstly the run_search function. This function handles the overall logic 
+such as processing each query in the query file one by one and writing the ranked results to the output 
+file. It does so by following the pseudocode given in lecture for calculating cosine scores. The query_term_vector
+function calculates the vector entry for a query term using the tf.idf method. The doc_term_vector function
+calculates the vector entry for a document term using the tf method. The main run_search function calls 
+these two functions, multiplies the outputs together, and updates the scores for the docmuments accordingly.
+We then normalize the vector entries by dividing by the document lengths found in the document_lengths file.
+Finally, we sort the resulting scores by decreasing scores and increasing docID (in the case where multiple 
+documents receive the same score) and write the 10 docIDs with the highest scores to the output file.
 
 == Files included with this submission ==
 
-List the files in your submission here and provide a short 1 line
-description of each file.  Make sure your submission's files are named
-and formatted correctly.
+README.txt - contains information about the submission
+index.py - contains the logic for indexing
+search.py - contains the logic for searching the index and ranking document similarity
+dictionary.txt - contains the dictionary that includes each term, pointer to postings list (byte location), and doc frequency
+postings.txt - contains the postings lists, one right after the other
+document_lengths.txt - contains document lengths for each document
 
 == Statement of individual work ==
 
