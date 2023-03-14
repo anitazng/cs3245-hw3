@@ -8,6 +8,17 @@ this assignment.
 
 == General Notes about this assignment ==
 
+The index.py file contains the build_index function. This function first takes all the files from 
+the training directory and processes each individual file. For each file, the terms in the file are 
+tokenized and stemmed. Then, the term frequency is calculated in the file which is subsequently used in the 
+document length calculation. At the end of each iterative loop, each document length is written into an 
+external document_lengths.txt file. The words in the file are also inputted into a term-docID dictionary whose 
+lifetime exists over the looping of all files in the training directory, and it maps each term to a list 
+of docIDs in which it exists. To build the index, after looping through each file in the training directory,
+the items from the term-docID pairs list are transferred into a python dictionary with terms and postings, 
+and the dictionary and postings in the python dictionary term_and_postings_dictionary are populated 
+into the corresponding file parameters.
+
 The search.py file contains firstly the run_search function. This function handles the overall logic 
 such as processing each query in the query file one by one and writing the ranked results to the output 
 file. It does so by following the pseudocode given in lecture for calculating cosine scores. The query_term_vector
@@ -48,5 +59,5 @@ We suggest that we should be graded as follows:
 
 == References ==
 
-<Please list any websites and/or people you consulted with for this
-assignment and state their role>
+Stack Overflow - Looking up syntax for working with files/dictionaries in Python
+Piazza - Posted questions online and used answers from prof, tutors, and peers

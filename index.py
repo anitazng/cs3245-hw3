@@ -34,6 +34,7 @@ def build_index(in_dir, out_dict, out_postings):
             term_frequency = {}
             doc_length = 0
 
+            # Calculate term frequency to be used in document length calculation
             for word in words:
                 term_frequency[word] = term_frequency.get(word, 0) + 1
 
@@ -41,8 +42,10 @@ def build_index(in_dir, out_dict, out_postings):
                 doc_length += (1 + math.log(freq, 10))**2
                 term_docID_pairs_lst.append((word, int(filename), freq))
             
+            # Update document lengths dictionary with calculated document lengths
             document_lengths_dict.update({filename: math.sqrt(doc_length)})
 
+    # Write document lengths dictionary into external document_lengths.txt file
     document_lengths_file.write(str(document_lengths_dict))
     term_docID_pairs_lst = list(dict.fromkeys(term_docID_pairs_lst)) # remove duplicates from list of term-docID pairs
     sorted_lst = sorted(term_docID_pairs_lst)
